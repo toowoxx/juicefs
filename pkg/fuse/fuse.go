@@ -443,8 +443,6 @@ func Serve(v *vfs.VFS, options string, xattrs bool) error {
 		} else if n == "nonempty" {
 		} else if n == "debug" {
 			opt.Debug = true
-		} else if n == "writeback_cache" || n == "writeback" {
-			opt.EnableWriteback = true
 		} else if strings.TrimSpace(n) != "" {
 			opt.Options = append(opt.Options, n)
 		}

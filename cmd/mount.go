@@ -13,7 +13,7 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-package main
+package cmd
 
 import (
 	"net"
@@ -28,6 +28,7 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/juicedata/juicefs/pkg/integration"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"github.com/urfave/cli/v2"
@@ -53,7 +54,8 @@ func installHandler(mp string) {
 			go func() { _ = doUmount(mp, true) }()
 			go func() {
 				time.Sleep(time.Second * 3)
-				os.Exit(1)
+				ExitCode = 1
+				select {}
 			}()
 		}
 	}()
@@ -239,9 +241,9 @@ func mount(c *cli.Context) error {
 				if err != nil {
 					logger.Fatalf("cache-dir should be absolute path in daemon mode")
 				} else {
-					for i, a := range os.Args {
+					for i, a := range integration.Args {
 						if a == d || a == "--cache-dir="+d {
-							os.Args[i] = a[:len(a)-len(d)] + ad
+							integration.Args[i] = a[:len(a)-len(d)] + ad
 						}
 					}
 				}
@@ -252,9 +254,9 @@ func mount(c *cli.Context) error {
 			path := addr[len(sqliteScheme):]
 			path2, err := filepath.Abs(path)
 			if err == nil && path2 != path {
-				for i, a := range os.Args {
+				for i, a := range integration.Args {
 					if a == addr {
-						os.Args[i] = sqliteScheme + path2
+						integration.Args[i] = sqliteScheme + path2
 					}
 				}
 			}

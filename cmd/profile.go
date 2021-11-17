@@ -13,7 +13,7 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-package main
+package cmd
 
 import (
 	"bufio"
@@ -271,7 +271,8 @@ func (p *profiler) flusher() {
 			})
 			p.flush(ts, keyStats, done)
 			if done {
-				os.Exit(0)
+				ExitCode = 0
+				return
 			}
 		case paused = <-p.pause:
 			fmt.Printf("\n\033[97mPaused. Press [enter] to continue.\n\033[0m")

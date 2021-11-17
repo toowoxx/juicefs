@@ -32,6 +32,7 @@ import (
 	"sync/atomic"
 	"time"
 
+	"github.com/juicedata/juicefs/pkg/integration"
 	"github.com/juicedata/juicefs/pkg/object"
 )
 
@@ -191,7 +192,7 @@ func startManager(tasks chan object.Object) (string, error) {
 }
 
 func findSelfPath() (string, error) {
-	program := os.Args[0]
+	program := integration.Args[0]
 	if strings.Contains(program, "/") {
 		path, err := filepath.Abs(program)
 		if err != nil {
@@ -237,11 +238,11 @@ func launchWorker(address string, config *Config, wg *sync.WaitGroup) {
 			// launch itself
 			var args = []string{host, rpath}
 			if strings.HasSuffix(path, "juicefs") {
-				args = append(args, os.Args[1:]...)
+				args = append(args, integration.Args[1:]...)
 				args = append(args, "--manager", address)
 			} else {
 				args = append(args, "--manager", address)
-				args = append(args, os.Args[1:]...)
+				args = append(args, integration.Args[1:]...)
 			}
 
 			logger.Debugf("launch worker command args: [ssh, %s]\n", strings.Join(args, ", "))

@@ -15,7 +15,7 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-package main
+package cmd
 
 import (
 	"bytes"
@@ -29,6 +29,7 @@ import (
 
 	"github.com/juicedata/godaemon"
 	"github.com/juicedata/juicefs/pkg/fuse"
+	"github.com/juicedata/juicefs/pkg/integration"
 	"github.com/juicedata/juicefs/pkg/vfs"
 	"github.com/urfave/cli/v2"
 )
@@ -63,11 +64,11 @@ func makeDaemon(c *cli.Context, name, mp string) error {
 	// the current dir will be changed to root in daemon,
 	// so the mount point has to be an absolute path.
 	if godaemon.Stage() == 0 {
-		for i, a := range os.Args {
+		for i, a := range integration.Args {
 			if a == mp {
 				amp, err := filepath.Abs(mp)
 				if err == nil {
-					os.Args[i] = amp
+					integration.Args[i] = amp
 				} else {
 					logger.Warnf("abs of %s: %s", mp, err)
 				}

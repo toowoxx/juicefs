@@ -13,23 +13,25 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-package main
+package cmd
 
 import (
 	"fmt"
 	"log"
 	"net/http"
 	_ "net/http/pprof"
-	"os"
 	"strings"
 
 	"github.com/google/gops/agent"
+	"github.com/juicedata/juicefs/pkg/integration"
 	"github.com/sirupsen/logrus"
 
 	"github.com/juicedata/juicefs/pkg/utils"
 	"github.com/juicedata/juicefs/pkg/version"
 	"github.com/urfave/cli/v2"
 )
+
+var ExitCode int
 
 var logger = utils.GetLogger("juicefs")
 
@@ -56,7 +58,9 @@ func globalFlags() []cli.Flag {
 	}
 }
 
-func main() {
+func Main(args []string) int {
+	integration.SetArgs(args)
+
 	cli.VersionFlag = &cli.BoolFlag{
 		Name: "version", Aliases: []string{"V"},
 		Usage: "print only the version",
@@ -72,7 +76,6 @@ func main() {
 			formatFlags(),
 			mountFlags(),
 			umountFlags(),
-			gatewayFlags(),
 			syncFlags(),
 			rmrFlags(),
 			infoFlags(),
@@ -89,18 +92,20 @@ func main() {
 	}
 
 	// Called via mount or fstab.
-	if strings.HasSuffix(os.Args[0], "/mount.juicefs") {
+	if strings.HasSuffix(integration.Args[0], "/mount.juicefs") {
 		if newArgs, err := handleSysMountArgs(); err != nil {
 			log.Fatal(err)
 		} else {
-			os.Args = newArgs
+			integration.Args = newArgs
 		}
 	}
 
-	err := app.Run(reorderOptions(app, os.Args))
+	err := app.Run(reorderOptions(app, integration.Args))
 	if err != nil {
 		log.Fatal(err)
 	}
+
+	return ExitCode
 }
 
 func handleSysMountArgs() ([]string, error) {
@@ -110,7 +115,7 @@ func handleSysMountArgs() ([]string, error) {
 		"direntrycacheto": "dir-entry-cache",
 	}
 	newArgs := []string{"juicefs", "mount", "-d"}
-	mountOptions := os.Args[3:]
+	mountOptions := integration.Args[3:]
 	sysOptions := []string{"_netdev", "rw", "defaults", "remount"}
 	fuseOptions := make([]string, 0, 20)
 	cmdFlagsLookup := make(map[string]bool, 20)
@@ -163,7 +168,7 @@ func handleSysMountArgs() ([]string, error) {
 	if len(fuseOptions) > 0 {
 		newArgs = append(newArgs, "-o", strings.Join(fuseOptions, ","))
 	}
-	newArgs = append(newArgs, os.Args[1], os.Args[2])
+	newArgs = append(newArgs, integration.Args[1], integration.Args[2])
 	logger.Debug("Parsed mount args: ", strings.Join(newArgs, " "))
 	return newArgs, nil
 }
